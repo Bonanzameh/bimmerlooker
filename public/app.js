@@ -211,16 +211,12 @@ function itemMatchesFilters(item, state, omitted = new Set()) {
   if (!omitted.has("driving") && state.driving && !item.hasDrivingAssistantPro) return false;
   if (!omitted.has("parking") && state.parking && !item.hasParking360) return false;
   if (!omitted.has("distance")) {
-    if (state.distanceEnabled) {
-      const origin = getPostalPoint(state.postalCode);
-      const garagePostal = garagePostalCode(item);
-      const garage = getPostalPoint(garagePostal);
-      const distance = origin && garage ? haversineKm(origin, garage) : null;
-      item.distanceToOriginKm = distance;
-      if (distance == null || distance > state.distanceKm) return false;
-    } else {
-      item.distanceToOriginKm = null;
-    }
+    const origin = getPostalPoint(state.postalCode);
+    const garagePostal = garagePostalCode(item);
+    const garage = getPostalPoint(garagePostal);
+    const distance = origin && garage ? haversineKm(origin, garage) : null;
+    item.distanceToOriginKm = distance;
+    if (state.distanceEnabled && (distance == null || distance > state.distanceKm)) return false;
   }
   if (!omitted.has("model") && state.model !== "all" && normalizeText(item.modelFamily) !== state.model) return false;
   if (!omitted.has("inventory") && state.inventory !== "all" && item.inventoryType !== state.inventory) return false;
