@@ -28,6 +28,9 @@ const els = {
   postalCodeInput: document.querySelector("#postalCodeInput"),
   distanceSelect: document.querySelector("#distanceSelect"),
   distanceInput: document.querySelector("#distanceInput"),
+  towInput: document.querySelector("#towInput"),
+  drivingInput: document.querySelector("#drivingInput"),
+  parkingInput: document.querySelector("#parkingInput"),
   segments: [...document.querySelectorAll(".segment")],
 };
 
@@ -175,6 +178,9 @@ function getFilterState() {
     exterior: els.exteriorSelect.value,
     interior: els.interiorSelect.value,
     feature: els.featureSelect.value,
+    tow: els.towInput.checked,
+    driving: els.drivingInput.checked,
+    parking: els.parkingInput.checked,
   };
 }
 
@@ -201,6 +207,9 @@ function getVisibleItems() {
 }
 
 function itemMatchesFilters(item, state, omitted = new Set()) {
+  if (!omitted.has("tow") && state.tow && !item.hasTowHitch) return false;
+  if (!omitted.has("driving") && state.driving && !item.hasDrivingAssistantPro) return false;
+  if (!omitted.has("parking") && state.parking && !item.hasParking360) return false;
   if (!omitted.has("distance")) {
     if (state.distanceEnabled) {
       const origin = getPostalPoint(state.postalCode);
@@ -542,6 +551,9 @@ for (const input of [
   els.exteriorSelect,
   els.interiorSelect,
   els.featureSelect,
+  els.towInput,
+  els.drivingInput,
+  els.parkingInput,
 ]) {
   input.addEventListener("input", renderWithFilterOptions);
   input.addEventListener("change", renderWithFilterOptions);

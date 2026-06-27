@@ -11,6 +11,10 @@ if [ ! -s /app/data/postal-coordinates.json ] && [ -s /app/seed-data/data/postal
   cp /app/seed-data/data/postal-coordinates.json /app/data/postal-coordinates.json
 fi
 
+if [ ! -s /app/data/search-cache.json ] && [ -s /app/seed-data/data/search-cache.json ]; then
+  cp /app/seed-data/data/search-cache.json /app/data/search-cache.json
+fi
+
 if [ ! -s /app/reports/latest.md ] && [ -s /app/seed-data/reports/latest.md ]; then
   cp /app/seed-data/reports/latest.md /app/reports/latest.md
 fi
