@@ -1,3 +1,6 @@
 node_modules/
-data/
-reports/
+data/*
+!data/latest.json
+!data/postal-coordinates.json
+reports/*
+!reports/latest.md
