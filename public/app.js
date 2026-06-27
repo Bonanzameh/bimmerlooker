@@ -125,7 +125,8 @@ function garagePostalCode(item) {
 }
 
 function postalCoordinates() {
-  return postalCoordinatesCache || payload?.data?.postalCoordinates || {};
+  if (postalCoordinatesCache && Object.keys(postalCoordinatesCache).length) return postalCoordinatesCache;
+  return payload?.data?.postalCoordinates || {};
 }
 
 async function hydratePostalCoordinates() {
@@ -138,7 +139,7 @@ async function hydratePostalCoordinates() {
       })
       .catch(() => ({}))
       .then((coords) => {
-        postalCoordinatesCache = coords && typeof coords === "object" ? coords : {};
+        postalCoordinatesCache = coords && typeof coords === "object" && Object.keys(coords).length ? coords : null;
         return postalCoordinatesCache;
       });
   }

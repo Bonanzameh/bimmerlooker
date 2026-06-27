@@ -9,6 +9,8 @@ const dataDir = path.join(rootDir, "data");
 const reportsDir = path.join(rootDir, "reports");
 const latestJsonPath = path.join(dataDir, "latest.json");
 const latestReportPath = path.join(reportsDir, "latest.md");
+const postalCoordinatesPath = path.join(dataDir, "postal-coordinates.json");
+const seedPostalCoordinatesPath = path.join(rootDir, "seed-data", "data", "postal-coordinates.json");
 const searchCachePath = path.join(dataDir, "search-cache.json");
 const seedSearchCachePath = path.join(rootDir, "seed-data", "data", "search-cache.json");
 const refreshLogPath = path.join(dataDir, "refresh.log");
@@ -191,6 +193,16 @@ async function loadSearchCache() {
     return cache;
   } catch {
     return { inventories: {} };
+  }
+}
+
+async function loadPostalCoordinates() {
+  try {
+    const raw = await fs.readFile(postalCoordinatesPath, "utf8").catch(() => fs.readFile(seedPostalCoordinatesPath, "utf8"));
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
   }
 }
 
@@ -801,6 +813,7 @@ export async function scrape() {
   }
 
   try {
+    const postalCoordinates = await loadPostalCoordinates();
     const results = [];
     for (const inventory of INVENTORIES) {
       logEvent(`Fetching inventory: ${inventory.label}.`);
@@ -825,6 +838,7 @@ export async function scrape() {
     return {
       generatedAt: new Date().toISOString(),
       sourceUrls: Object.fromEntries(INVENTORIES.map((inventory) => [inventory.key, inventory.sourceUrl])),
+      postalCoordinates,
       filters: {
         model: MODEL_RANGES,
       },
