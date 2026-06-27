@@ -1,0 +1,36 @@
+{
+  "inventories": {
+    "new": {
+      "url": "https://stolo-data-service.prod.stolo.eu-central-1.aws.bmw.cloud/vehiclesearch/search/nl-be/vehiclefinder?maxResults=6&startIndex=0&brand=BMW&hash=a82a0b686623891ba580b690253e64e6a9036adfcc984f0d432467e346e1ffaa&context=results-page",
+      "postData": "{\"searchContext\":[{\"model\":{\"marketingModelRange\":{\"value\":[\"i4_G26E\",\"i5_G60E\",\"i5_G61E\",\"iX1_U11E\"]}},\"buNos\":[\"05649\",\"05657\",\"23686\",\"22540\",\"05681\",\"05718\",\"05606\",\"40686\",\"05735\",\"10126\",\"05728\",\"05617\",\"41709\",\"05726\",\"46324\",\"05683\",\"53557\",\"05719\",\"05711\",\"05716\",\"05616\",\"10028\",\"05638\",\"05740\",\"52827\",\"05722\",\"20736\",\"05721\",\"05738\",\"05659\",\"05691\",\"05724\",\"40866\",\"33242\",\"50057\",\"05632\",\"21738\",\"40691\",\"05675\",\"40687\",\"45187\",\"05690\",\"20048\",\"05645\",\"53666\",\"40692\",\"05655\",\"05730\",\"05742\",\"05741\",\"05605\",\"05699\",\"40684\",\"05670\",\"05692\",\"05604\",\"05662\",\"05610\",\"27966\",\"05641\",\"05623\",\"05666\",\"05600\",\"05628\",\"05679\",\"05687\"]}],\"resultsContext\":{\"sort\":[{\"by\":\"PRODUCTION_DATE\",\"order\":\"DESC\"}]}}",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.bmw.be/",
+        "accept-language": "nl-BE",
+        "sec-ch-ua": "\"Chromium\";v=\"148\", \"HeadlessChrome\";v=\"148\", \"Not/A)Brand\";v=\"99\"",
+        "x-api-key": "7f665f5b3cb8fe8e83293052367c575f666078b87570d5557f02f248ec98",
+        "sec-ch-ua-mobile": "?0",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "accept": "*/*",
+        "content-type": "application/json"
+      },
+      "capturedAt": "2026-06-27T18:16:06.446Z"
+    },
+    "used": {
+      "url": "https://stolo-data-service.prod.stolo.eu-central-1.aws.bmw.cloud/vehiclesearch/search/nl-be/vehiclefinder_uc?maxResults=12&startIndex=0&brand=BMW&hash=44aede416292ef5a089b5a2c408ac5096605b2c41291f51415633e20c9e69742&context=results-page",
+      "postData": "{\"searchContext\":[{\"model\":{\"marketingModelRange\":{\"value\":[\"i4_G26E\",\"i5_G61E\",\"i5_G60E\",\"iX1_U11E\"]}},\"buNos\":[\"05649\",\"32015\",\"23686\",\"22540\",\"49045\",\"05681\",\"05718\",\"05606\",\"40686\",\"53185\",\"10126\",\"05728\",\"41709\",\"05726\",\"46324\",\"05683\",\"53557\",\"53186\",\"35363\",\"05716\",\"05616\",\"10028\",\"05638\",\"05740\",\"52827\",\"05722\",\"05721\",\"05738\",\"36821\",\"05691\",\"05724\",\"40866\",\"33242\",\"50057\",\"53188\",\"05632\",\"21738\",\"40691\",\"05675\",\"40687\",\"45187\",\"05690\",\"20048\",\"05645\",\"53666\",\"40692\",\"05655\",\"05730\",\"05742\",\"05741\",\"05699\",\"40684\",\"05692\",\"32013\",\"05604\",\"36163\",\"05662\",\"53187\",\"24192\",\"44726\",\"32016\",\"32327\",\"05687\"]}],\"resultsContext\":{\"sort\":[{\"by\":\"PRICE\",\"order\":\"ASC\"}]}}",
+      "headers": {
+        "sec-ch-ua-platform": "\"macOS\"",
+        "referer": "https://www.bmw.be/",
+        "accept-language": "nl-BE",
+        "sec-ch-ua": "\"Chromium\";v=\"148\", \"HeadlessChrome\";v=\"148\", \"Not/A)Brand\";v=\"99\"",
+        "x-api-key": "7f665f5b3cb8fe8e83293052367c575f666078b87570d5557f02f248ec98",
+        "sec-ch-ua-mobile": "?0",
+        "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "accept": "*/*",
+        "content-type": "application/json"
+      },
+      "capturedAt": "2026-06-27T05:37:45.864Z"
+    }
+  }
+}

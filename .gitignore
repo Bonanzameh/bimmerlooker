@@ -2,5 +2,6 @@ node_modules/
 data/*
 !data/latest.json
 !data/postal-coordinates.json
+!data/search-cache.json
 reports/*
 !reports/latest.md

@@ -10,6 +10,7 @@ const reportsDir = path.join(rootDir, "reports");
 const latestJsonPath = path.join(dataDir, "latest.json");
 const latestReportPath = path.join(reportsDir, "latest.md");
 const searchCachePath = path.join(dataDir, "search-cache.json");
+const seedSearchCachePath = path.join(rootDir, "seed-data", "data", "search-cache.json");
 const refreshLogPath = path.join(dataDir, "refresh.log");
 
 const MODEL_RANGES = ["i4_G26E", "i5_G60E", "i5_G61E", "iX1_U11E"];
@@ -178,8 +179,13 @@ async function writeJson(filePath, data) {
 
 async function loadSearchCache() {
   try {
-    if (!(await exists(searchCachePath))) return { inventories: {} };
-    const cache = await readJson(searchCachePath);
+    const cachePath = (await exists(searchCachePath))
+      ? searchCachePath
+      : (await exists(seedSearchCachePath))
+        ? seedSearchCachePath
+        : "";
+    if (!cachePath) return { inventories: {} };
+    const cache = await readJson(cachePath);
     if (!cache || typeof cache !== "object") return { inventories: {} };
     if (!cache.inventories || typeof cache.inventories !== "object") return { inventories: {} };
     return cache;
