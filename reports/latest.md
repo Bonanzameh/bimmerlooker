@@ -1,4 +1,4 @@
-# BMW i4/i5/iX1 Interior Watch
+# BMW i4/i5/iX1 Filter Browser
 
 Generated: 2026-06-27T05:41:28.358Z
 Previous baseline: 2026-06-27T05:41:28.358Z
@@ -7,7 +7,7 @@ Refresh status: FAILED (Error: BMW fetch failed: TypeError: fetch failed -> Erro
 BMW i4/i5/iX1 vehicles scanned: 852
 New cars scanned: 286; matches: 8
 Occasions scanned: 566; matches: 32
-Interior matches with required assistant/parking equipment: 40
+Filtered matches: 40
 
 ## Model-family counts (scanned / matches)
 
@@ -22,10 +22,6 @@ Interior matches with required assistant/parking equipment: 40
 - i5_G60E: 154 / 10
 - i5_G61E: 188 / 26
 - iX1_U11E: 145 / 4
-
-Required equipment: Driving Assistant Pack Professional and Parking Assistant Pack Plus.
-Included interiors: Merino excluding black, plus Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz.
-Preferred combo is always ranked first: i5 Touring + Merino Kupferbraun + tow hitch.
 
 ## Daily changes
 

@@ -3,12 +3,8 @@ let activeFilter = "all";
 let refreshTimer = null;
 let refreshStartedAt = null;
 let latestFingerprint = "";
-let distanceHydrationToken = 0;
-let distanceFilterError = "";
 
 const AUTO_RELOAD_INTERVAL_MS = 60_000;
-const distanceCoordinateCache = new Map();
-const distancePairCache = new Map();
 
 const els = {
   matchCount: document.querySelector("#matchCount"),
@@ -29,16 +25,9 @@ const els = {
   exteriorSelect: document.querySelector("#exteriorSelect"),
   interiorSelect: document.querySelector("#interiorSelect"),
   featureSelect: document.querySelector("#featureSelect"),
-  interiorGroupSelect: document.querySelector("#interiorGroupSelect"),
   postalCodeInput: document.querySelector("#postalCodeInput"),
   distanceSelect: document.querySelector("#distanceSelect"),
   distanceInput: document.querySelector("#distanceInput"),
-  targetOnlyInput: document.querySelector("#targetOnlyInput"),
-  towInput: document.querySelector("#towInput"),
-  drivingInput: document.querySelector("#drivingInput"),
-  parkingInput: document.querySelector("#parkingInput"),
-  watchlistButton: document.querySelector("#watchlistButton"),
-  allInventoryButton: document.querySelector("#allInventoryButton"),
   segments: [...document.querySelectorAll(".segment")],
 };
 
@@ -49,10 +38,6 @@ const SELECT_DEFAULTS = {
   interior: "All interiors",
   feature: "All features",
 };
-
-const BELGIUM_POSTAL_CODE_FALLBACKS = new Map([
-  ["3140", { lat: 51.0051977, lon: 4.6543021, label: "3140, Keerbergen, Belgium" }],
-]);
 
 function money(value) {
   if (!value) return "Price unknown";
@@ -134,6 +119,21 @@ function garagePostalCode(item) {
   return normalizePostalCode(item.postalCode || item.city || item.location?.postalCode || item.ordering?.retailData?.locationOutletAddress?.postalCode);
 }
 
+function postalCoordinates() {
+  return payload?.data?.postalCoordinates || {};
+}
+
+function getPostalPoint(postalCode) {
+  const normalized = normalizePostalCode(postalCode);
+  if (!normalized) return null;
+  const coords = postalCoordinates()[normalized];
+  if (!coords) return null;
+  const lat = Number(coords.lat);
+  const lon = Number(coords.lon ?? coords.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  return { lat, lon };
+}
+
 function haversineKm(a, b) {
   if (!a || !b) return null;
   const radius = 6371;
@@ -150,76 +150,6 @@ function haversineKm(a, b) {
   return 2 * radius * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
 }
 
-async function fetchPostalCoordinates(postalCode) {
-  const normalized = normalizePostalCode(postalCode);
-  if (!normalized) return null;
-  if (distanceCoordinateCache.has(normalized)) return distanceCoordinateCache.get(normalized);
-  if (BELGIUM_POSTAL_CODE_FALLBACKS.has(normalized)) {
-    const fallback = { postalCode: normalized, ...BELGIUM_POSTAL_CODE_FALLBACKS.get(normalized) };
-    distanceCoordinateCache.set(normalized, fallback);
-    return fallback;
-  }
-
-  const response = await fetch(`/api/geocode-postal?postalCode=${encodeURIComponent(normalized)}`);
-  if (!response.ok) return null;
-  const data = await response.json();
-  const coords = {
-    postalCode: normalized,
-    lat: Number(data.lat),
-    lon: Number(data.lon),
-    label: data.label || normalized,
-  };
-  if (!Number.isFinite(coords.lat) || !Number.isFinite(coords.lon)) return null;
-  distanceCoordinateCache.set(normalized, coords);
-  return coords;
-}
-
-async function ensureDistanceHydration(items, state) {
-  if (!state.distanceEnabled) return { ready: true, error: "" };
-
-  const originPostalCode = normalizePostalCode(state.postalCode);
-  if (!originPostalCode) {
-    return { ready: false, error: "Enter a Belgian postal code to filter by distance." };
-  }
-
-  const nextToken = ++distanceHydrationToken;
-  const garagePostalCodes = new Set(
-    items.map((item) => garagePostalCode(item)).filter(Boolean),
-  );
-  garagePostalCodes.add(originPostalCode);
-
-  const coordinates = new Map();
-  const lookups = [...garagePostalCodes].map(async (postalCode) => {
-    const coords = await fetchPostalCoordinates(postalCode);
-    if (coords) coordinates.set(postalCode, coords);
-  });
-  await Promise.all(lookups);
-
-  if (nextToken !== distanceHydrationToken) {
-    return { ready: false, error: "" };
-  }
-
-  const origin = coordinates.get(originPostalCode);
-  if (!origin) {
-    return { ready: false, error: `Could not resolve postal code ${originPostalCode}.` };
-  }
-
-  for (const item of items) {
-    const garageCode = garagePostalCode(item);
-    const pairKey = `${originPostalCode}|${garageCode}`;
-    if (distancePairCache.has(pairKey)) {
-      item.distanceToOriginKm = distancePairCache.get(pairKey);
-      continue;
-    }
-    const garage = coordinates.get(garageCode) || null;
-    const distance = haversineKm(origin, garage);
-    distancePairCache.set(pairKey, distance);
-    item.distanceToOriginKm = distance;
-  }
-
-  return { ready: true, error: "" };
-}
-
 function ids(items) {
   return new Set(items.map((item) => item.id || item.item?.id).filter(Boolean));
 }
@@ -231,24 +161,6 @@ function changedById(items) {
 function getAllItems() {
   const data = payload?.data || {};
   return data.vehicles || data.matches || [];
-}
-
-function getHydrationItems() {
-  const data = payload?.data || {};
-  const changes = getChanges();
-  const items = [
-    ...(data.vehicles || data.matches || []),
-    ...(changes.added || []),
-    ...((changes.changed || []).map((entry) => entry.item).filter(Boolean)),
-    ...(changes.removed || []),
-  ];
-  const seen = new Set();
-  return items.filter((item) => {
-    const id = item?.id;
-    if (!id || seen.has(id)) return false;
-    seen.add(id);
-    return true;
-  });
 }
 
 function getFilterState() {
@@ -263,11 +175,6 @@ function getFilterState() {
     exterior: els.exteriorSelect.value,
     interior: els.interiorSelect.value,
     feature: els.featureSelect.value,
-    interiorGroup: els.interiorGroupSelect.value,
-    targetOnly: els.targetOnlyInput.checked,
-    tow: els.towInput.checked,
-    driving: els.drivingInput.checked,
-    parking: els.parkingInput.checked,
   };
 }
 
@@ -275,7 +182,6 @@ function sorted(items) {
   const result = [...items];
   const mode = els.sortSelect.value;
   result.sort((a, b) => {
-    if (mode === "best") return bestRank(a) - bestRank(b) || (a.priceEur || 0) - (b.priceEur || 0);
     if (mode === "distanceAsc") return (a.distanceToOriginKm ?? Number.POSITIVE_INFINITY) - (b.distanceToOriginKm ?? Number.POSITIVE_INFINITY);
     if (mode === "priceDesc") return (b.priceEur || 0) - (a.priceEur || 0);
     if (mode === "mileageAsc") return (a.mileageKm || Number.MAX_SAFE_INTEGER) - (b.mileageKm || Number.MAX_SAFE_INTEGER);
@@ -283,18 +189,6 @@ function sorted(items) {
     return (a.priceEur || Number.MAX_SAFE_INTEGER) - (b.priceEur || Number.MAX_SAFE_INTEGER);
   });
   return result;
-}
-
-function bestRank(item) {
-  let rank = 0;
-  if (!item.isIdeal) rank += 100;
-  if (item.bodyStyle !== "Touring") rank += 20;
-  if (item.modelFamily !== "i5") rank += 15;
-  if (!item.hasTowHitch) rank += 10;
-  if (!String(item.upholstery?.name || "").toLowerCase().includes("kupferbraun")) rank += 5;
-  if (item.interiorCategory !== "Merino non-black") rank += 2;
-  if (item.inventoryType !== "used") rank += 1;
-  return rank;
 }
 
 function getVisibleItems() {
@@ -307,12 +201,17 @@ function getVisibleItems() {
 }
 
 function itemMatchesFilters(item, state, omitted = new Set()) {
-  if (!omitted.has("targetOnly") && state.targetOnly && !item.isTargetMatch) return false;
-  if (!omitted.has("tow") && state.tow && !item.hasTowHitch) return false;
-  if (!omitted.has("driving") && state.driving && !item.hasDrivingAssistantPro) return false;
-  if (!omitted.has("parking") && state.parking && !item.hasParking360) return false;
-  if (!omitted.has("distance") && state.distanceEnabled && !distanceFilterError) {
-    if (item.distanceToOriginKm == null || item.distanceToOriginKm > state.distanceKm) return false;
+  if (!omitted.has("distance")) {
+    if (state.distanceEnabled) {
+      const origin = getPostalPoint(state.postalCode);
+      const garagePostal = garagePostalCode(item);
+      const garage = getPostalPoint(garagePostal);
+      const distance = origin && garage ? haversineKm(origin, garage) : null;
+      item.distanceToOriginKm = distance;
+      if (distance == null || distance > state.distanceKm) return false;
+    } else {
+      item.distanceToOriginKm = null;
+    }
   }
   if (!omitted.has("model") && state.model !== "all" && normalizeText(item.modelFamily) !== state.model) return false;
   if (!omitted.has("inventory") && state.inventory !== "all" && item.inventoryType !== state.inventory) return false;
@@ -322,13 +221,6 @@ function itemMatchesFilters(item, state, omitted = new Set()) {
   if (!omitted.has("feature") && state.feature !== "all") {
     const features = item.features || [];
     if (!features.some((feature) => normalizeText(feature) === state.feature)) return false;
-  }
-
-  if (!omitted.has("interiorGroup")) {
-    if (state.interiorGroup === "interesting" && !["Merino non-black", "M Alcantara"].includes(item.interiorCategory)) return false;
-    if (state.interiorGroup === "merino" && item.interiorCategory !== "Merino non-black") return false;
-    if (state.interiorGroup === "alcantara" && item.interiorCategory !== "M Alcantara") return false;
-    if (state.interiorGroup === "other" && item.interiorCategory) return false;
   }
 
   if (!omitted.has("query") && state.query) {
@@ -341,7 +233,6 @@ function itemMatchesFilters(item, state, omitted = new Set()) {
       item.exteriorColor,
       item.upholstery?.name,
       item.upholstery?.cluster,
-      item.interiorCategory,
       ...(item.features || []),
       item.dealer,
       item.city,
@@ -481,9 +372,6 @@ function renderCards() {
           : item.isIdeal
             ? "Ideal"
             : item.inventoryLabel || "BMW";
-    const towText = item.hasTowHitch ? "Yes" : "No";
-    const drivingAssistantText = item.hasDrivingAssistantPro ? "Yes" : "No";
-    const parking360Text = item.hasParking360 ? "Yes" : "No";
     const changesHtml = changed
       ? `<ul class="change-list">${changed.changes
           .map((change) => `<li>${escapeHtml(change.field)}: ${escapeHtml(String(change.before || "blank"))} -> ${escapeHtml(String(change.after || "blank"))}</li>`)
@@ -503,11 +391,7 @@ function renderCards() {
         <div><dt>Body</dt><dd>${escapeHtml(item.bodyStyle || "Unknown")}</dd></div>
         <div><dt>Mileage</dt><dd>${km(item.mileageKm)}</dd></div>
         <div><dt>Garage distance</dt><dd>${escapeHtml(distanceKm(item.distanceToOriginKm))}</dd></div>
-        <div><dt>Tow hitch</dt><dd>${towText}</dd></div>
-        <div><dt>Driving Pack Pro</dt><dd>${drivingAssistantText}</dd></div>
-        <div><dt>Parking Pack Plus</dt><dd>${parking360Text}</dd></div>
         <div><dt>Dealer</dt><dd>${escapeHtml([item.dealer, item.city].filter(Boolean).join(", ") || "Unknown")}</dd></div>
-        <div><dt>Interior type</dt><dd>${escapeHtml(item.interiorCategory || "Unknown")}</dd></div>
         <div><dt>Interior</dt><dd>${escapeHtml(item.upholstery?.name || item.upholstery?.cluster || "Merino")}</dd></div>
         <div><dt>Exterior</dt><dd>${escapeHtml(item.exteriorColor || "Unknown")}</dd></div>
         <div><dt>Updated</dt><dd>${escapeHtml(timeAgo(item.updatedAt))}</dd></div>
@@ -545,19 +429,11 @@ function render() {
     els.statusLine.textContent = `Refresh failed at ${failedAt}: ${shortError(payload.refreshError)} Showing last successful run: ${generatedAt}`;
     return;
   }
-  if (distanceFilterError) {
-    els.statusLine.textContent = `${distanceFilterError} Last successful run: ${generatedAt}`;
-    return;
-  }
   els.statusLine.textContent = `Last successful run: ${generatedAt}`;
 }
 
-async function renderWithFilterOptions() {
+function renderWithFilterOptions() {
   populateFilterOptions();
-  const state = getFilterState();
-  const items = getHydrationItems();
-  const hydration = await ensureDistanceHydration(items, state);
-  distanceFilterError = hydration.error || "";
   render();
 }
 
@@ -617,7 +493,7 @@ async function loadLatest({ silent = false, onlyIfChanged = false } = {}) {
   if (onlyIfChanged && nextFingerprint === latestFingerprint) return false;
   payload = nextPayload;
   latestFingerprint = nextFingerprint;
-  await renderWithFilterOptions();
+  renderWithFilterOptions();
   return true;
 }
 
@@ -630,9 +506,16 @@ async function refreshNow() {
     statusPoller = window.setInterval(pollRefreshStatus, 3000);
     const response = await fetch("/api/refresh", { method: "POST" });
     if (!response.ok) throw new Error(await response.text());
-    payload = await response.json();
     stopRefreshTimer();
-    await renderWithFilterOptions();
+    const result = await response.json();
+    if (result.refreshError || result.data?.refresh?.ok === false) {
+      payload = result;
+      renderWithFilterOptions();
+      return;
+    }
+    payload = result;
+    latestFingerprint = getPayloadFingerprint(result);
+    renderWithFilterOptions();
   } catch (error) {
     stopRefreshTimer();
     els.statusLine.textContent = shortError(error.message || String(error));
@@ -645,7 +528,7 @@ async function refreshNow() {
 
 els.refreshButton.addEventListener("click", refreshNow);
 els.sortSelect.addEventListener("change", () => {
-  void renderWithFilterOptions();
+  renderWithFilterOptions();
 });
 
 for (const input of [
@@ -659,59 +542,10 @@ for (const input of [
   els.exteriorSelect,
   els.interiorSelect,
   els.featureSelect,
-  els.interiorGroupSelect,
-  els.targetOnlyInput,
-  els.towInput,
-  els.drivingInput,
-  els.parkingInput,
 ]) {
-  input.addEventListener("input", () => {
-    void renderWithFilterOptions();
-  });
-  input.addEventListener("change", () => {
-    void renderWithFilterOptions();
-  });
+  input.addEventListener("input", renderWithFilterOptions);
+  input.addEventListener("change", renderWithFilterOptions);
 }
-
-els.watchlistButton.addEventListener("click", () => {
-  els.searchInput.value = "";
-  els.postalCodeInput.value = "3140";
-  els.distanceSelect.value = "20";
-  els.distanceInput.checked = true;
-  els.modelSelect.value = "all";
-  els.inventorySelect.value = "all";
-  els.bodySelect.value = "all";
-  els.exteriorSelect.value = "all";
-  els.interiorSelect.value = "all";
-  els.featureSelect.value = "all";
-  els.interiorGroupSelect.value = "interesting";
-  els.targetOnlyInput.checked = true;
-  els.towInput.checked = false;
-  els.drivingInput.checked = true;
-  els.parkingInput.checked = true;
-  activeFilter = "all";
-  for (const item of els.segments) item.classList.toggle("is-active", item.dataset.filter === "all");
-  void renderWithFilterOptions();
-});
-
-els.allInventoryButton.addEventListener("click", () => {
-  els.searchInput.value = "";
-  els.modelSelect.value = "all";
-  els.inventorySelect.value = "all";
-  els.bodySelect.value = "all";
-  els.exteriorSelect.value = "all";
-  els.interiorSelect.value = "all";
-  els.featureSelect.value = "all";
-  els.interiorGroupSelect.value = "all";
-  els.distanceInput.checked = false;
-  els.targetOnlyInput.checked = false;
-  els.towInput.checked = false;
-  els.drivingInput.checked = false;
-  els.parkingInput.checked = false;
-  activeFilter = "all";
-  for (const item of els.segments) item.classList.toggle("is-active", item.dataset.filter === "all");
-  void renderWithFilterOptions();
-});
 
 for (const segment of els.segments) {
   segment.addEventListener("click", () => {

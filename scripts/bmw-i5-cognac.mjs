@@ -821,9 +821,6 @@ export async function scrape() {
       sourceUrls: Object.fromEntries(INVENTORIES.map((inventory) => [inventory.key, inventory.sourceUrl])),
       filters: {
         model: MODEL_RANGES,
-        interior: "Merino, excluding black, or Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz",
-        requiredEquipment: ["Driving Assistant Pack Professional", "Parking Assistant Pack Plus"],
-        preferred: "i5 Touring + Merino Kupferbraun + tow hitch",
       },
       totalScanned: results.reduce((sum, result) => sum + result.totalCount, 0),
       vehicleCount: vehicles.length,
@@ -904,11 +901,7 @@ export function km(value) {
 function listingLine(item) {
   const place = [item.dealer, item.city].filter(Boolean).join(", ");
   const upholstery = [item.upholstery?.name, item.upholstery?.type].filter(Boolean).join(" | ");
-  const tow = item.hasTowHitch ? "tow hitch" : "no tow hitch";
-  const assistant = item.hasDrivingAssistantPro ? "Driving Assistant Pack Professional" : "no Driving Assistant Pack Professional";
-  const parking = item.hasParking360 ? "Parking Assistant Pack Plus" : "no Parking Assistant Pack Plus";
-  const ideal = item.isIdeal ? "IDEAL | " : "";
-  return `- ${ideal}${item.inventoryLabel} | ${item.title || `BMW ${item.modelFamily || ""} ${item.bodyStyle || ""}`.trim()} | ${priceText(item)} | ${km(item.mileageKm)} | ${tow} | ${assistant} | ${parking} | ${place || "dealer unknown"} | ${item.interiorCategory || "Interior"} | ${upholstery || "Merino"} | [open listing](${item.detailUrl})`;
+  return `- ${item.inventoryLabel} | ${item.title || `BMW ${item.modelFamily || ""} ${item.bodyStyle || ""}`.trim()} | ${priceText(item)} | ${km(item.mileageKm)} | ${place || "dealer unknown"} | ${upholstery || "Interior"} | [open listing](${item.detailUrl})`;
 }
 
 function countBy(list, selector) {
@@ -943,7 +936,7 @@ export function renderReport(current, previous, diff) {
     (match) => match.bodyStyle,
   );
   const lines = [
-    "# BMW i4/i5/iX1 Interior Watch",
+    "# BMW i4/i5/iX1 Filter Browser",
     "",
     `Generated: ${current.generatedAt}`,
     `Previous baseline: ${previousRun}`,
@@ -956,7 +949,7 @@ export function renderReport(current, previous, diff) {
     `BMW i4/i5/iX1 vehicles scanned: ${current.totalScanned}`,
     `New cars scanned: ${newCounts?.scanned ?? 0}; matches: ${newCounts?.matches ?? 0}`,
     `Occasions scanned: ${usedCounts?.scanned ?? 0}; matches: ${usedCounts?.matches ?? 0}`,
-    `Interior matches with required assistant/parking equipment: ${current.matchCount}`,
+    `Filtered matches: ${current.matchCount}`,
     "",
     "## Model-family counts (scanned / matches)",
     "",
@@ -970,10 +963,6 @@ export function renderReport(current, previous, diff) {
     ...MODEL_RANGES.map(
       (model) => `- ${model}: ${getCount(scannedByModel, model)} / ${getCount(matchByModel, model)}`,
     ),
-    "",
-    "Required equipment: Driving Assistant Pack Professional and Parking Assistant Pack Plus.",
-    "Included interiors: Merino excluding black, plus Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz.",
-    "Preferred combo is always ranked first: i5 Touring + Merino Kupferbraun + tow hitch.",
     "",
     "## Daily changes",
     "",

@@ -9,6 +9,7 @@ const publicDir = path.join(__dirname, "public");
 const latestJsonPath = path.join(__dirname, "data", "latest.json");
 const latestReportPath = path.join(__dirname, "reports", "latest.md");
 const postalCoordinatesPath = path.join(__dirname, "data", "postal-coordinates.json");
+const seedPostalCoordinatesPath = path.join(__dirname, "seed-data", "data", "postal-coordinates.json");
 const seedJsonPath = path.join(__dirname, "seed-data", "data", "latest.json");
 const seedReportPath = path.join(__dirname, "seed-data", "reports", "latest.md");
 const postalCodeCache = new Map();
@@ -53,7 +54,7 @@ function normalizePostalCode(value) {
 async function loadPostalCoordinates() {
   if (postalCoordinates) return postalCoordinates;
   try {
-    const raw = await fs.readFile(postalCoordinatesPath, "utf8");
+    const raw = await fs.readFile(postalCoordinatesPath, "utf8").catch(() => fs.readFile(seedPostalCoordinatesPath, "utf8"));
     postalCoordinates = JSON.parse(raw);
   } catch {
     postalCoordinates = {};
@@ -88,9 +89,12 @@ async function fetchPostalCodeCoordinates(postalCode) {
 }
 
 async function readLatest() {
-  const dataRaw = await fs.readFile(latestJsonPath, "utf8").catch(() => fs.readFile(seedJsonPath, "utf8"));
+  const [dataRaw, postalCoordinatesRaw] = await Promise.all([
+    fs.readFile(latestJsonPath, "utf8").catch(() => fs.readFile(seedJsonPath, "utf8")),
+    fs.readFile(postalCoordinatesPath, "utf8").catch(() => fs.readFile(seedPostalCoordinatesPath, "utf8")).catch(() => "{}"),
+  ]);
   const report = await fs.readFile(latestReportPath, "utf8").catch(() => fs.readFile(seedReportPath, "utf8").catch(() => ""));
-  return { data: JSON.parse(dataRaw), report };
+  return { data: { ...JSON.parse(dataRaw), postalCoordinates: JSON.parse(postalCoordinatesRaw) }, report };
 }
 
 async function serveStatic(req, res) {
@@ -162,7 +166,14 @@ async function handleRequest(req, res) {
 
       try {
         const result = await refreshPromise;
-        sendJson(res, 200, { data: result.current, report: result.report, refreshStatus });
+        sendJson(res, 200, {
+          data: result.current,
+          report: result.report,
+          refreshStatus,
+          refreshError: result.current?.refresh?.ok === false
+            ? result.current.refresh.errorDetails || result.current.refresh.errorShort || "Refresh failed."
+            : "",
+        });
       } catch (error) {
         const stale = await readLatest();
         sendJson(res, 200, {
@@ -222,7 +233,7 @@ function listen(port, attemptsLeft = 10) {
   });
 
   server.listen(port, host, () => {
-    console.log(`BMW i4/i5/iX1 watch web app: http://${host}:${port}`);
+    console.log(`BMW i4/i5/iX1 filter browser: http://${host}:${port}`);
   });
 }
 
