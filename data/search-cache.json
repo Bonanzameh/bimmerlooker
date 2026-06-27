@@ -14,7 +14,7 @@
         "accept": "*/*",
         "content-type": "application/json"
       },
-      "capturedAt": "2026-06-27T18:16:06.446Z"
+      "capturedAt": "2026-06-27T19:55:20.272Z"
     },
     "used": {
       "url": "https://stolo-data-service.prod.stolo.eu-central-1.aws.bmw.cloud/vehiclesearch/search/nl-be/vehiclefinder_uc?maxResults=12&startIndex=0&brand=BMW&hash=44aede416292ef5a089b5a2c408ac5096605b2c41291f51415633e20c9e69742&context=results-page",
@@ -30,7 +30,7 @@
         "accept": "*/*",
         "content-type": "application/json"
       },
-      "capturedAt": "2026-06-27T05:37:45.864Z"
+      "capturedAt": "2026-06-27T19:56:56.049Z"
     }
   }
 }
