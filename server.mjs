@@ -8,6 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, "public");
 const latestJsonPath = path.join(__dirname, "data", "latest.json");
 const latestReportPath = path.join(__dirname, "reports", "latest.md");
+const seedJsonPath = path.join(__dirname, "seed-data", "data", "latest.json");
+const seedReportPath = path.join(__dirname, "seed-data", "reports", "latest.md");
 const postalCodeCache = new Map();
 
 let refreshPromise = null;
@@ -91,10 +93,8 @@ async function fetchPostalCodeCoordinates(postalCode) {
 }
 
 async function readLatest() {
-  const [dataRaw, report] = await Promise.all([
-    fs.readFile(latestJsonPath, "utf8"),
-    fs.readFile(latestReportPath, "utf8").catch(() => ""),
-  ]);
+  const dataRaw = await fs.readFile(latestJsonPath, "utf8").catch(() => fs.readFile(seedJsonPath, "utf8"));
+  const report = await fs.readFile(latestReportPath, "utf8").catch(() => fs.readFile(seedReportPath, "utf8").catch(() => ""));
   return { data: JSON.parse(dataRaw), report };
 }
 

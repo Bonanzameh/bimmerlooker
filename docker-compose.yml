@@ -1,7 +1,8 @@
 services:
   bimmerlooker:
-    build: .
-    image: bonanzameh/bimmerlooker:latest
+    build:
+      context: https://github.com/Bonanzameh/bimmerlooker.git#main
+      dockerfile: Dockerfile
     container_name: bimmerlooker
     ports:
       - "4173:4173"
@@ -9,6 +10,10 @@ services:
       HOST: 0.0.0.0
       PORT: 4173
     volumes:
-      - ./data:/app/data
-      - ./reports:/app/reports
+      - bimmerlooker_data:/app/data
+      - bimmerlooker_reports:/app/reports
     restart: unless-stopped
+
+volumes:
+  bimmerlooker_data:
+  bimmerlooker_reports:
