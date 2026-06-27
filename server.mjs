@@ -204,6 +204,11 @@ async function handleRequest(req, res) {
       return;
     }
 
+    if (req.method === "GET" && url.pathname === "/api/postal-coordinates") {
+      sendJson(res, 200, await loadPostalCoordinates());
+      return;
+    }
+
     if (req.method === "GET") {
       await serveStatic(req, res);
       return;

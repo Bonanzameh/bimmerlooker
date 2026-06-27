@@ -3,6 +3,8 @@ let activeFilter = "all";
 let refreshTimer = null;
 let refreshStartedAt = null;
 let latestFingerprint = "";
+let postalCoordinatesCache = null;
+let postalCoordinatesPromise = null;
 
 const AUTO_RELOAD_INTERVAL_MS = 60_000;
 
@@ -123,7 +125,24 @@ function garagePostalCode(item) {
 }
 
 function postalCoordinates() {
-  return payload?.data?.postalCoordinates || {};
+  return postalCoordinatesCache || payload?.data?.postalCoordinates || {};
+}
+
+async function hydratePostalCoordinates() {
+  if (postalCoordinatesCache) return postalCoordinatesCache;
+  if (!postalCoordinatesPromise) {
+    postalCoordinatesPromise = fetch("/api/postal-coordinates")
+      .then(async (response) => {
+        if (!response.ok) return {};
+        return response.json();
+      })
+      .catch(() => ({}))
+      .then((coords) => {
+        postalCoordinatesCache = coords && typeof coords === "object" ? coords : {};
+        return postalCoordinatesCache;
+      });
+  }
+  return postalCoordinatesPromise;
 }
 
 function getPostalPoint(postalCode) {
@@ -498,6 +517,7 @@ async function loadLatest({ silent = false, onlyIfChanged = false } = {}) {
   if (onlyIfChanged && nextFingerprint === latestFingerprint) return false;
   payload = nextPayload;
   latestFingerprint = nextFingerprint;
+  await hydratePostalCoordinates();
   renderWithFilterOptions();
   return true;
 }
@@ -515,11 +535,13 @@ async function refreshNow() {
     const result = await response.json();
     if (result.refreshError || result.data?.refresh?.ok === false) {
       payload = result;
+      await hydratePostalCoordinates();
       renderWithFilterOptions();
       return;
     }
     payload = result;
     latestFingerprint = getPayloadFingerprint(result);
+    await hydratePostalCoordinates();
     renderWithFilterOptions();
   } catch (error) {
     stopRefreshTimer();
@@ -563,9 +585,13 @@ for (const segment of els.segments) {
   });
 }
 
-loadLatest().catch((error) => {
-  els.statusLine.textContent = error.message || String(error);
-});
+hydratePostalCoordinates()
+  .catch(() => {})
+  .finally(() => {
+    loadLatest().catch((error) => {
+      els.statusLine.textContent = error.message || String(error);
+    });
+  });
 
 window.setInterval(() => {
   if (refreshTimer) return;
