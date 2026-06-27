@@ -1,0 +1,14 @@
+services:
+  bimmerlooker:
+    build: .
+    image: bonanzameh/bimmerlooker:latest
+    container_name: bimmerlooker
+    ports:
+      - "4173:4173"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4173
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    restart: unless-stopped

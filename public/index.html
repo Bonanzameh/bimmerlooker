@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BMW i4/i5/iX1 Interior Watch</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">BMW Belgium new and occasion inventory</p>
+          <h1>BMW i4/i5/iX1 interior watch</h1>
+        </div>
+        <div class="actions">
+          <a class="secondary-link" id="newSourceLink" href="#" target="_blank" rel="noreferrer">New BMW search</a>
+          <a class="secondary-link" id="usedSourceLink" href="#" target="_blank" rel="noreferrer">Occasion BMW search</a>
+          <button id="refreshButton" type="button">Refresh now</button>
+        </div>
+      </header>
+
+      <section class="summary-grid" aria-label="Summary">
+        <article class="metric">
+          <span class="metric-label">Shown</span>
+          <strong id="matchCount">-</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Scanned</span>
+          <strong id="scannedCount">-</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">New</span>
+          <strong id="newCount">-</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Changed</span>
+          <strong id="changedCount">-</strong>
+        </article>
+      </section>
+
+      <section class="controls" aria-label="Result controls">
+        <div class="segments" role="tablist" aria-label="Result filter">
+          <button class="segment is-active" type="button" data-filter="all">All</button>
+          <button class="segment" type="button" data-filter="new">New</button>
+          <button class="segment" type="button" data-filter="changed">Changed</button>
+          <button class="segment" type="button" data-filter="removed">Removed</button>
+        </div>
+        <label class="sort-label">
+          Sort
+          <select id="sortSelect">
+            <option value="best">Best match first</option>
+            <option value="distanceAsc">Closest garage first</option>
+            <option value="priceAsc">Price low to high</option>
+            <option value="priceDesc">Price high to low</option>
+            <option value="mileageAsc">Mileage low to high</option>
+            <option value="updatedDesc">Recently updated</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="filter-panel" aria-label="Local filters">
+        <label>
+          Search
+          <input id="searchInput" type="search" placeholder="dealer, model, colour..." />
+        </label>
+        <label>
+          Postal code
+          <input id="postalCodeInput" type="text" inputmode="numeric" autocomplete="postal-code" placeholder="3140" value="3140" />
+        </label>
+        <label>
+          Max distance
+          <select id="distanceSelect">
+            <option value="5">5 km</option>
+            <option value="10">10 km</option>
+            <option value="20" selected>20 km</option>
+            <option value="30">30 km</option>
+            <option value="50">50 km</option>
+          </select>
+        </label>
+        <label>
+          Model
+          <select id="modelSelect">
+            <option value="all">All models</option>
+          </select>
+        </label>
+        <label>
+          Inventory
+          <select id="inventorySelect">
+            <option value="all">All inventory</option>
+            <option value="new">New cars</option>
+            <option value="used">Occasions</option>
+          </select>
+        </label>
+        <label>
+          Body
+          <select id="bodySelect">
+            <option value="all">All bodies</option>
+          </select>
+        </label>
+        <label>
+          Exterior
+          <select id="exteriorSelect">
+            <option value="all">All exterior colours</option>
+          </select>
+        </label>
+        <label>
+          Interior
+          <select id="interiorSelect">
+            <option value="all">All interiors</option>
+          </select>
+        </label>
+        <label>
+          Feature
+          <select id="featureSelect">
+            <option value="all">All features</option>
+          </select>
+        </label>
+        <label>
+          Interior group
+          <select id="interiorGroupSelect">
+            <option value="interesting">Merino or M Alcantara</option>
+            <option value="merino">Merino non-black</option>
+            <option value="alcantara">M Alcantara</option>
+            <option value="all">All interior groups</option>
+            <option value="other">Other interiors</option>
+          </select>
+        </label>
+        <fieldset class="feature-filter">
+          <legend>Features</legend>
+          <label><input id="distanceInput" type="checkbox" checked /> Garage within range</label>
+          <label><input id="targetOnlyInput" type="checkbox" checked /> Watchlist only</label>
+          <label><input id="towInput" type="checkbox" /> Tow hitch</label>
+          <label><input id="drivingInput" type="checkbox" checked /> Driving Pack Pro</label>
+          <label><input id="parkingInput" type="checkbox" checked /> Parking Pack Plus</label>
+        </fieldset>
+        <div class="filter-actions">
+          <button id="watchlistButton" type="button">Watchlist defaults</button>
+          <button id="allInventoryButton" type="button">Show all BMWs</button>
+        </div>
+      </section>
+
+      <p class="status" id="statusLine">Loading results...</p>
+      <section class="result-grid" id="resultGrid" aria-live="polite"></section>
+      <section class="report-panel">
+        <div class="report-header">
+          <h2>Report</h2>
+          <a href="/api/latest" target="_blank" rel="noreferrer">Raw JSON</a>
+        </div>
+        <pre id="reportText"></pre>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

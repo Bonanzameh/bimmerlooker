@@ -1,0 +1,15 @@
+{
+  "name": "bmw-i5-cognac-watch",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scrape-bmw": "node scripts/bmw-i5-cognac.mjs",
+    "scrape": "npm run scrape-bmw",
+    "web": "node server.mjs",
+    "start": "npm run web"
+  },
+  "dependencies": {
+    "playwright": "^1.56.1"
+  }
+}
