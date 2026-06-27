@@ -8,9 +8,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, "public");
 const latestJsonPath = path.join(__dirname, "data", "latest.json");
 const latestReportPath = path.join(__dirname, "reports", "latest.md");
+const postalCoordinatesPath = path.join(__dirname, "data", "postal-coordinates.json");
 const seedJsonPath = path.join(__dirname, "seed-data", "data", "latest.json");
 const seedReportPath = path.join(__dirname, "seed-data", "reports", "latest.md");
 const postalCodeCache = new Map();
+let postalCoordinates = null;
 
 let refreshPromise = null;
 let refreshStatus = {
@@ -48,6 +50,17 @@ function normalizePostalCode(value) {
   return String(value || "").replace(/\D/g, "").trim();
 }
 
+async function loadPostalCoordinates() {
+  if (postalCoordinates) return postalCoordinates;
+  try {
+    const raw = await fs.readFile(postalCoordinatesPath, "utf8");
+    postalCoordinates = JSON.parse(raw);
+  } catch {
+    postalCoordinates = {};
+  }
+  return postalCoordinates;
+}
+
 async function fetchPostalCodeCoordinates(postalCode) {
   const normalized = normalizePostalCode(postalCode);
   if (!normalized) {
@@ -58,34 +71,16 @@ async function fetchPostalCodeCoordinates(postalCode) {
     return postalCodeCache.get(normalized);
   }
 
-  const url = new URL("https://nominatim.openstreetmap.org/search");
-  url.searchParams.set("postalcode", normalized);
-  url.searchParams.set("country", "Belgium");
-  url.searchParams.set("countrycodes", "be");
-  url.searchParams.set("format", "jsonv2");
-  url.searchParams.set("limit", "1");
-
-  const response = await fetch(url, {
-    headers: {
-      "user-agent": "bmw-i5-cognac-watch/1.0 (local dev)",
-      accept: "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Postal-code lookup failed for ${normalized}: ${response.status} ${response.statusText}`);
-  }
-
-  const results = await response.json();
-  const match = Array.isArray(results) ? results[0] : null;
-  if (!match?.lat || !match?.lon) {
+  const coordinates = await loadPostalCoordinates();
+  const match = coordinates[normalized];
+  if (!match?.lat || !(match?.lng || match?.lon)) {
     throw new Error(`No coordinates found for postal code ${normalized}.`);
   }
 
   const coords = {
     postalCode: normalized,
     lat: Number(match.lat),
-    lon: Number(match.lon),
+    lon: Number(match.lon ?? match.lng),
     label: match.display_name || match.name || normalized,
   };
   postalCodeCache.set(normalized, coords);
