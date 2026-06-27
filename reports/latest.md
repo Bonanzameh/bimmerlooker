@@ -1,33 +1,42 @@
-# BMW i4/i5/iX1 Filter Browser
+# BMW i4/i5/iX1 Interior Watch
 
-Generated: 2026-06-27T05:41:28.358Z
+Generated: 2026-06-27T20:00:56.814Z
 Previous baseline: 2026-06-27T05:41:28.358Z
-Refresh attempted: 2026-06-27T06:02:11.327Z
-Refresh status: FAILED (Error: BMW fetch failed: TypeError: fetch failed -> Error ENOTFOUND: getaddrinfo ENOTFOUND stolo-data-service.prod.stolo.eu-central-1.aws.bmw.cloud -> TypeError: fetch failed -> Error ENOTFOUND: getaddrinfo ENOTFOUND stolo-data-service.p...)
-BMW i4/i5/iX1 vehicles scanned: 852
-New cars scanned: 286; matches: 8
-Occasions scanned: 566; matches: 32
-Filtered matches: 40
+Refresh attempted: 2026-06-27T19:55:18.132Z
+Refresh status: OK
+BMW i4/i5/iX1 vehicles scanned: 854
+New cars scanned: 285; matches: 8
+Occasions scanned: 569; matches: 34
+Interior matches with required assistant/parking equipment: 42
 
 ## Model-family counts (scanned / matches)
 
-- i4: 365 / 0
+- i4: 363 / 0
 - i5 Sedan: 154 / 10
-- i5 Touring: 188 / 26
-- iX1: 145 / 4
+- i5 Touring: 193 / 28
+- iX1: 144 / 4
 
 ## Model range counts (scanned / matches)
 
-- i4_G26E: 365 / 0
+- i4_G26E: 363 / 0
 - i5_G60E: 154 / 10
-- i5_G61E: 188 / 26
-- iX1_U11E: 145 / 4
+- i5_G61E: 193 / 28
+- iX1_U11E: 144 / 4
+
+Required equipment: Driving Assistant Pack Professional and Parking Assistant Pack Plus.
+Included interiors: Merino excluding black, plus Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz.
+Preferred combo is always ranked first: i5 Touring + Merino Kupferbraun + tow hitch.
 
 ## Daily changes
 
-New: 0
+New: 2
 Changed: 0
 Removed: 0
+
+### New matches
+
+- Occasion | BMW i5 xDrive40 Touring | DEALERPRIJS: € 61.890 | 13.280 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Dejonckheere Roeselare Tweedehands, 8800 | Merino non-black | BMW Individual binnenbekleding leder Merino Kupferbraun/Atlasgrau | INDIVIDUALLEATHER | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/01973555-d236-7045-a68f-fb323e97b357)
+- Occasion | BMW i5 eDrive40 Touring | DEALERPRIJS: € 66.890 | 26.225 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | O. Cocquyt nv (Tweedehandscentrum), 8200 | M Alcantara | Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz | FABRIC | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/01973552-5e3a-70af-898e-71d7b8c8c1a0)
 
 ## Current matches
 
@@ -46,6 +55,7 @@ Removed: 0
 - New car | BMW i5 eDrive40 Touring | DEALERPRIJS: € 69.990 (list EUR 89.604,99) | 0 km | tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Pautric Dilbeek, 1700 | M Alcantara | Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz | FABRIC | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder/details/01905de3-abd6-7a68-be76-d143512b4fb7)
 - New car | BMW i5 eDrive40 Touring M Edition | DEALERPRIJS: € 81.990 (list EUR 92.765) | 0 km | tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Jorssen Zuid, 2630 | M Alcantara | Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz | FABRIC | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder/details/019c90bf-3142-7718-9b46-fc2137c94b29)
 - Occasion | BMW i5 eDrive40 Touring | DEALERPRIJS: € 59.990 | 36.310 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Pautric Groot-Bijgaarden, 1072 | Merino non-black | BMW Individual binnenbekleding leder Merino Kupferbraun/Atlasgrau | INDIVIDUALLEATHER | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/018e94ec-145e-724f-b440-d05706fa2e48)
+- Occasion | BMW i5 xDrive40 Touring | DEALERPRIJS: € 61.890 | 13.280 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Dejonckheere Roeselare Tweedehands, 8800 | Merino non-black | BMW Individual binnenbekleding leder Merino Kupferbraun/Atlasgrau | INDIVIDUALLEATHER | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/01973555-d236-7045-a68f-fb323e97b357)
 - Occasion | BMW i5 M60 xDrive Touring | DEALERPRIJS: € 79.999 | 9.987 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Louyet Mariembourg, 5660 | Merino non-black | BMW Individual binnenbekleding leder Merino Kupferbraun/Atlasgrau | INDIVIDUALLEATHER | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/0193ab5b-0538-783d-bd15-5ccd9347cbcf)
 - Occasion | BMW i5 eDrive40 Touring | DEALERPRIJS: € 58.990 | 21.152 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | De Schepper Tweedehandscentrum, 9100 | M Alcantara | Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz | FABRIC | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/01926663-46db-7777-8392-17b61b3ec9cd)
 - Occasion | BMW i5 eDrive40 Touring | DEALERPRIJS: € 59.890 | 27.824 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Dejonckheere Roeselare Tweedehands, 8800 | M Alcantara | Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz | FABRIC | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/019b1387-fc72-7df0-a19e-d49e63a1cef8)
@@ -56,6 +66,7 @@ Removed: 0
 - Occasion | BMW i5 eDrive40 Touring | DEALERPRIJS: € 64.890 | 25.770 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Dejonckheere Roeselare Tweedehands, 8800 | M Alcantara | Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz | FABRIC | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/0194badb-db2f-7f7b-9e3e-bfa39382bc89)
 - Occasion | BMW i5 eDrive40 Touring | DEALERPRIJS: € 64.995 | 18.766 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Bilia Verstraeten Tweedehandscentru, 9080 | M Alcantara | Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz | FABRIC | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/019b138a-fed9-7f84-842f-090cf98d0525)
 - Occasion | BMW i5 eDrive40 Touring | DEALERPRIJS: € 65.900 | 18.545 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Sneyers Tweedehandscentrum, 2200 | M Alcantara | Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz | FABRIC | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/019b138a-3fd4-7eed-8cfa-05d0fc2c7fa7)
+- Occasion | BMW i5 eDrive40 Touring | DEALERPRIJS: € 66.890 | 26.225 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | O. Cocquyt nv (Tweedehandscentrum), 8200 | M Alcantara | Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz | FABRIC | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/01973552-5e3a-70af-898e-71d7b8c8c1a0)
 - Occasion | BMW i5 eDrive40 Touring | DEALERPRIJS: € 66.890 | 8.661 km | no tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Dejonckheere Roeselare Tweedehands, 8800 | M Alcantara | Binnenbekleding kunstleder Veganza / M Alcantara combinatie Schwarz | FABRIC | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder_uc/details/0197f9c1-38d1-7039-a0e5-1dfe8d4c8845)
 - New car | BMW i5 eDrive40 Berline M Edition | DEALERPRIJS: € 77.573 (list EUR 89.465) | 0 km | tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Gregoir Jette, 1090 | Merino non-black | BMW Individual binnenbekleding leder Merino Kupferbraun/Atlasgrau | INDIVIDUALLEATHER | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder/details/019b46cc-b7fb-7721-98a9-eee06b1e5570)
 - New car | BMW i5 eDrive40 Berline M Edition | DEALERPRIJS: € 84.500 (list EUR 99.525) | 0 km | tow hitch | Driving Assistant Pack Professional | Parking Assistant Pack Plus | Bilia Verstraeten, 9080 | Merino non-black | BMW Individual binnenbekleding leder Merino Kupferbraun/Atlasgrau | INDIVIDUALLEATHER | [open listing](https://www.bmw.be/nl-be/sl/vehiclefinder/details/019b5440-c721-7e98-a860-78b2ee302454)

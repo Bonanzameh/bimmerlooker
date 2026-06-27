@@ -166,9 +166,9 @@ async function handleRequest(req, res) {
 
       try {
         const result = await refreshPromise;
+        const latest = await readLatest();
         sendJson(res, 200, {
-          data: result.current,
-          report: result.report,
+          ...latest,
           refreshStatus,
           refreshError: result.current?.refresh?.ok === false
             ? result.current.refresh.errorDetails || result.current.refresh.errorShort || "Refresh failed."
