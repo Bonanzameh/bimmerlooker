@@ -130,18 +130,28 @@ function postalCoordinates() {
 }
 
 async function hydratePostalCoordinates() {
-  if (postalCoordinatesCache) return postalCoordinatesCache;
+  if (postalCoordinatesCache && Object.keys(postalCoordinatesCache).length) return postalCoordinatesCache;
   if (!postalCoordinatesPromise) {
-    postalCoordinatesPromise = fetch("/api/postal-coordinates")
-      .then(async (response) => {
-        if (!response.ok) return {};
-        return response.json();
-      })
-      .catch(() => ({}))
-      .then((coords) => {
-        postalCoordinatesCache = coords && typeof coords === "object" && Object.keys(coords).length ? coords : null;
-        return postalCoordinatesCache;
-      });
+    postalCoordinatesPromise = (async () => {
+      const sources = ["/postal-coordinates.json", "/api/postal-coordinates"];
+      for (const source of sources) {
+        try {
+          const response = await fetch(source, { cache: "no-store" });
+          if (!response.ok) continue;
+          const coords = await response.json();
+          if (coords && typeof coords === "object" && Object.keys(coords).length) {
+            postalCoordinatesCache = coords;
+            return postalCoordinatesCache;
+          }
+        } catch {
+          // Try the next source.
+        }
+      }
+      postalCoordinatesCache = null;
+      return null;
+    })().finally(() => {
+      postalCoordinatesPromise = null;
+    });
   }
   return postalCoordinatesPromise;
 }
@@ -462,6 +472,11 @@ function renderWithFilterOptions() {
   render();
 }
 
+async function renderWithDistanceData() {
+  await hydratePostalCoordinates();
+  renderWithFilterOptions();
+}
+
 function getPayloadFingerprint(nextPayload) {
   const data = nextPayload?.data || {};
   const changes = data.changes || {};
@@ -518,8 +533,7 @@ async function loadLatest({ silent = false, onlyIfChanged = false } = {}) {
   if (onlyIfChanged && nextFingerprint === latestFingerprint) return false;
   payload = nextPayload;
   latestFingerprint = nextFingerprint;
-  await hydratePostalCoordinates();
-  renderWithFilterOptions();
+  await renderWithDistanceData();
   return true;
 }
 
@@ -536,14 +550,12 @@ async function refreshNow() {
     const result = await response.json();
     if (result.refreshError || result.data?.refresh?.ok === false) {
       payload = result;
-      await hydratePostalCoordinates();
-      renderWithFilterOptions();
+      await renderWithDistanceData();
       return;
     }
     payload = result;
     latestFingerprint = getPayloadFingerprint(result);
-    await hydratePostalCoordinates();
-    renderWithFilterOptions();
+    await renderWithDistanceData();
   } catch (error) {
     stopRefreshTimer();
     els.statusLine.textContent = shortError(error.message || String(error));
@@ -559,11 +571,9 @@ els.sortSelect.addEventListener("change", () => {
   renderWithFilterOptions();
 });
 
+els.searchInput.addEventListener("input", renderWithFilterOptions);
+els.searchInput.addEventListener("change", renderWithFilterOptions);
 for (const input of [
-  els.searchInput,
-  els.postalCodeInput,
-  els.distanceSelect,
-  els.distanceInput,
   els.modelSelect,
   els.inventorySelect,
   els.bodySelect,
@@ -576,6 +586,14 @@ for (const input of [
 ]) {
   input.addEventListener("input", renderWithFilterOptions);
   input.addEventListener("change", renderWithFilterOptions);
+}
+for (const input of [els.postalCodeInput, els.distanceSelect, els.distanceInput]) {
+  input.addEventListener("input", () => {
+    void renderWithDistanceData();
+  });
+  input.addEventListener("change", () => {
+    void renderWithDistanceData();
+  });
 }
 
 for (const segment of els.segments) {
