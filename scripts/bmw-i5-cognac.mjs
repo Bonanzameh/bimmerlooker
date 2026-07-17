@@ -758,6 +758,16 @@ async function captureSearchRequest(browser, inventory) {
   }
 }
 
+async function captureSearchRequestInFreshBrowser(inventory) {
+  const launchOptions = await findBrowserLaunchOptions();
+  const freshBrowser = await chromium.launch({ headless: true, ...launchOptions });
+  try {
+    return await captureSearchRequest(freshBrowser, inventory);
+  } finally {
+    await freshBrowser.close().catch(() => {});
+  }
+}
+
 async function scrapeInventory(browser, inventory) {
   let searchRequest;
   if (process.env.SCRAPE_MODE === "cache" || !browser) {
@@ -809,7 +819,7 @@ async function scrapeInventory(browser, inventory) {
 
     logError(`BMW search became stale; recapturing request`, error);
     try {
-      searchRequest = await captureSearchRequest(browser, inventory);
+      searchRequest = await captureSearchRequestInFreshBrowser(inventory);
       await setCachedSearchRequest(inventory, searchRequest);
       logEvent(`Recaptured fresh search request for ${inventory.label} after stale cache.`);
       searchData = await fetchPages(searchRequest);
