@@ -170,6 +170,11 @@ function toErrorDetails(error, max = 4000) {
   return `${stripped.slice(0, max - 3)}...`;
 }
 
+function isStoloConfigMissingError(error) {
+  const text = formatErrorChain(error) || stripAnsi(error?.message || String(error));
+  return text.includes("BMW API 404") && text.includes("StoloConfig") && text.includes("does not exist");
+}
+
 async function readJson(filePath) {
   const raw = await fs.readFile(filePath, "utf8");
   return JSON.parse(raw);
@@ -743,6 +748,7 @@ async function captureSearchRequest(page, inventory) {
 
 async function scrapeInventory(browser, inventory) {
   let searchRequest;
+  let startedFromCache = false;
   if (process.env.SCRAPE_MODE === "cache" || !browser) {
     const cached = await getCachedSearchRequest(inventory);
     if (!cached) {
@@ -751,6 +757,7 @@ async function scrapeInventory(browser, inventory) {
     }
     logEvent(`Using cached search request for ${inventory.label}${cached.capturedAt ? ` (captured ${cached.capturedAt})` : ""}.`);
     searchRequest = { url: cached.url, postData: cached.postData, headers: cached.headers || {} };
+    startedFromCache = true;
   } else {
     const page = await browser.newPage({
       locale: "nl-BE",
@@ -772,22 +779,50 @@ async function scrapeInventory(browser, inventory) {
     }
   }
 
-  const searchUrl = new URL(searchRequest.url);
-  searchUrl.searchParams.set("maxResults", "12");
+  const fetchPages = async (request) => {
+    const searchUrl = new URL(request.url);
+    searchUrl.searchParams.set("maxResults", "12");
 
-  const firstPage = await fetchJson(searchUrl.toString(), searchRequest.postData, 8, searchRequest.headers);
-  const hash = searchUrl.searchParams.get("hash") || "";
-  const totalCount = firstPage.metadata?.totalCount || firstPage.hits?.length || 0;
-  const pageSize = Number(searchUrl.searchParams.get("maxResults") || 12);
-  const hits = [...(firstPage.hits || [])];
+    const firstPage = await fetchJson(searchUrl.toString(), request.postData, 8, request.headers);
+    const hash = searchUrl.searchParams.get("hash") || "";
+    const totalCount = firstPage.metadata?.totalCount || firstPage.hits?.length || 0;
+    const pageSize = Number(searchUrl.searchParams.get("maxResults") || 12);
+    const hits = [...(firstPage.hits || [])];
 
-  for (let startIndex = pageSize; startIndex < totalCount; startIndex += pageSize) {
-    await sleep(3_000);
-    const pageUrl = setSearchParam(searchUrl.toString(), "startIndex", startIndex);
-    const pageData = await fetchJson(pageUrl, searchRequest.postData, 8, searchRequest.headers);
-    hits.push(...(pageData.hits || []));
+    for (let startIndex = pageSize; startIndex < totalCount; startIndex += pageSize) {
+      await sleep(3_000);
+      const pageUrl = setSearchParam(searchUrl.toString(), "startIndex", startIndex);
+      const pageData = await fetchJson(pageUrl, request.postData, 8, request.headers);
+      hits.push(...(pageData.hits || []));
+    }
+
+    return { searchUrl, hash, totalCount, hits };
+  };
+
+  let searchData;
+  try {
+    searchData = await fetchPages(searchRequest);
+  } catch (error) {
+    if (!browser || !startedFromCache || !isStoloConfigMissingError(error)) throw error;
+
+    logError(`Cached ${inventory.label} search became stale; recapturing request`, error);
+    const page = await browser.newPage({
+      locale: "nl-BE",
+      userAgent:
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+    });
+
+    try {
+      searchRequest = await captureSearchRequest(page, inventory);
+      await setCachedSearchRequest(inventory, searchRequest);
+      logEvent(`Recaptured fresh search request for ${inventory.label} after stale cache.`);
+      searchData = await fetchPages(searchRequest);
+    } finally {
+      await page.close();
+    }
   }
 
+  const { hash, totalCount, hits } = searchData;
   const vehicles = hits.map((hit) => normalizeVehicle(hit, inventory));
   const matches = vehicles.filter((item) => item.isTargetMatch);
   const hitByVssId = new Map(hits.map((hit) => [hit.vehicle?.vssId, hit]).filter(([vssId]) => vssId));
