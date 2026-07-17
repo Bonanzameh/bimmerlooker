@@ -720,35 +720,46 @@ async function enrichMatchesWithDealerPricing(matches, hitByVssId, inventory, ha
   }
 }
 
-async function captureSearchRequest(page, inventory) {
-  let searchRequest;
-  page.on("request", (request) => {
-    if (!searchRequest && request.url().includes("/vehiclesearch/search/")) {
-      searchRequest = {
-        url: request.url(),
-        postData: request.postData(),
-        headers: request.headers(),
-      };
-    }
+async function captureSearchRequest(browser, inventory) {
+  const context = await browser.newContext({
+    locale: "nl-BE",
+    userAgent:
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
   });
+  const page = await context.newPage();
+  let searchRequest;
 
-  await page.goto(inventory.sourceUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  try {
+    page.on("request", (request) => {
+      if (!searchRequest && request.url().includes("/vehiclesearch/search/")) {
+        searchRequest = {
+          url: request.url(),
+          postData: request.postData(),
+          headers: request.headers(),
+        };
+      }
+    });
 
-  const started = Date.now();
-  while (!searchRequest && Date.now() - started < 45_000) {
-    await page.waitForTimeout(500);
+    await page.goto(inventory.sourceUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+
+    const started = Date.now();
+    while (!searchRequest && Date.now() - started < 45_000) {
+      await page.waitForTimeout(500);
+    }
+
+    if (!searchRequest?.url || !searchRequest?.postData) {
+      throw new Error(`Could not capture BMW ${inventory.label} search request.`);
+    }
+
+    return searchRequest;
+  } finally {
+    await page.close().catch(() => {});
+    await context.close().catch(() => {});
   }
-
-  if (!searchRequest?.url || !searchRequest?.postData) {
-    throw new Error(`Could not capture BMW ${inventory.label} search request.`);
-  }
-
-  return searchRequest;
 }
 
 async function scrapeInventory(browser, inventory) {
   let searchRequest;
-  let startedFromCache = false;
   if (process.env.SCRAPE_MODE === "cache" || !browser) {
     const cached = await getCachedSearchRequest(inventory);
     if (!cached) {
@@ -757,16 +768,9 @@ async function scrapeInventory(browser, inventory) {
     }
     logEvent(`Using cached search request for ${inventory.label}${cached.capturedAt ? ` (captured ${cached.capturedAt})` : ""}.`);
     searchRequest = { url: cached.url, postData: cached.postData, headers: cached.headers || {} };
-    startedFromCache = true;
   } else {
-    const page = await browser.newPage({
-      locale: "nl-BE",
-      userAgent:
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-    });
-
     try {
-      searchRequest = await captureSearchRequest(page, inventory);
+      searchRequest = await captureSearchRequest(browser, inventory);
       await setCachedSearchRequest(inventory, searchRequest);
       logEvent(`Captured search request for ${inventory.label} (and saved to cache).`);
     } catch (error) {
@@ -774,8 +778,6 @@ async function scrapeInventory(browser, inventory) {
       if (!cached) throw error;
       logError(`Failed to capture ${inventory.label} search request; falling back to cached request`, error);
       searchRequest = { url: cached.url, postData: cached.postData, headers: cached.headers || {} };
-    } finally {
-      await page.close();
     }
   }
 
@@ -803,22 +805,17 @@ async function scrapeInventory(browser, inventory) {
   try {
     searchData = await fetchPages(searchRequest);
   } catch (error) {
-    if (!browser || !startedFromCache || !isStoloConfigMissingError(error)) throw error;
+    if (!browser || !isStoloConfigMissingError(error)) throw error;
 
-    logError(`Cached ${inventory.label} search became stale; recapturing request`, error);
-    const page = await browser.newPage({
-      locale: "nl-BE",
-      userAgent:
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-    });
-
+    logError(`BMW search became stale; recapturing request`, error);
     try {
-      searchRequest = await captureSearchRequest(page, inventory);
+      searchRequest = await captureSearchRequest(browser, inventory);
       await setCachedSearchRequest(inventory, searchRequest);
       logEvent(`Recaptured fresh search request for ${inventory.label} after stale cache.`);
       searchData = await fetchPages(searchRequest);
-    } finally {
-      await page.close();
+    } catch (retryError) {
+      logError(`Fresh ${inventory.label} capture still failed after stale cache recovery`, retryError);
+      throw retryError;
     }
   }
 
